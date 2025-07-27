@@ -19,7 +19,6 @@ void Game::update()
 void Game::draw()
 {
     DrawRectangleLinesEx(textBox,2.f,RAYWHITE);
-    // DrawRectangleRec(textBox,DARKGRAY);
     this->drawChar();
     this->drawTextBlink();
 }
@@ -36,6 +35,8 @@ void Game::checkMouseOnTextbox()
 {
     if(CheckCollisionPointRec(GetMousePosition(),textBox) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
         mouseText=true;
+    }else if(CheckCollisionPointRec(GetMousePosition(),textBox)==false && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        mouseText=false;
     }
 
     if(mouseText){
@@ -47,12 +48,16 @@ void Game::checkMouseOnTextbox()
 
 void Game::handleKeyInput()
 {
+    // checking game state
+    this->handleGameState();
+
+    // typing text in the textbox
     if(mouseText){
         int key=GetCharPressed();
         while(key>0){
             if((key>=32) && (key<=125)){
-                str[letterCount]=char(key);
-                str[letterCount+1]='\0';
+                msg[letterCount]=char(key);
+                msg[letterCount+1]='\0';
                 letterCount++;
             }
             key=GetCharPressed();
@@ -62,27 +67,43 @@ void Game::handleKeyInput()
             if(letterCount<0){
                 letterCount=0;
             }
-            str[letterCount]='\0';
+            msg[letterCount]='\0';
         }
     }
 
-    if(IsKeyPressed(KEY_ENTER)){
+    // text input packaged into data packet to be sent to server
+    if(IsKeyPressed(KEY_ENTER) && mouseText){
         for(int i=0; i>letterCount; i++){
-            str[letterCount]='\0';
+            msg[letterCount]='\0';
         }
-        std::cout<<"Sent message to server."<<"\n";
+        strcat(data,name);
+        strcat(data,msg);
+        std::cout<<"Sending message to server."<<"\n";
     }
+}
+
+void Game::drawIntroScreen()
+{
+    DrawTextEx(font,"Press E to start application",{200.f,200.f},50,1.0,RAYWHITE);
 }
 
 void Game::drawChar()
 {
-    DrawText(str,(int)textBox.x+5,(int)textBox.y+5,18,RAYWHITE);
+    DrawTextEx(font,msg,{(float)textBox.x+5,(float)textBox.y+5},18,1.0,RAYWHITE);
+    // DrawText(str,(int)textBox.x+5,(int)textBox.y+5,18,RAYWHITE);
 }
 
 void Game::drawTextBlink()
 {
     if((frameCounter/20)%2==0){
-        DrawText("|",(int)textBox.x+5+MeasureText(str,18),(int)textBox.y+6,18,RAYWHITE);
+        DrawText("|",(int)textBox.x+5+MeasureText(msg,18),(int)textBox.y+6,18,RAYWHITE);
+    }
+}
+
+void Game::handleGameState()
+{
+    if(gameState==STATE_INTRO && IsKeyPressed(KEY_E)){
+        gameState=STATE_MSG_LOOP;
     }
 }
 

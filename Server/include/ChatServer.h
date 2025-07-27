@@ -14,6 +14,8 @@ public:
     void stateMessageCount() const;
     void listMessage() const;
 
+    char str[100]="hello client\0";
+
 private:
     std::vector<std::string> messageVector;
 };

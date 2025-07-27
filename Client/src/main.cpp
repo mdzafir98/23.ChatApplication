@@ -54,6 +54,9 @@ int main(void)
         while(enet_host_service(client,&event,10)>0){
             switch(event.type){
                 case ENET_EVENT_TYPE_RECEIVE:
+                    std::string temp=convert_DATAPACKET_to_string(event.packet->data);
+                    std::cout<<temp<<"\n";
+                    enet_packet_destroy(event.packet);
                     break;
             }
         }
@@ -61,7 +64,10 @@ int main(void)
         // GAME LOGIC STARTS
         game.handleInput();
         if(IsKeyPressed(KEY_ENTER)){
-            send_client_packet_to_server(peer,game.str);
+            send_client_packet_to_server(peer,game.data);
+
+            // clear the char array after sending the data packet to server
+            memset(game.data,'\0',sizeof(game.data));
         }
         game.update();
         BeginDrawing();

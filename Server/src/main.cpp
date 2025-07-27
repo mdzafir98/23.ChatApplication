@@ -41,19 +41,24 @@ int main(void)
     while(WindowShouldClose()==false){
         while(enet_host_service(server,&event,10)>0){
             switch(event.type){
-                // client connects to server
+                // 01. client connects to server
                 case ENET_EVENT_TYPE_CONNECT:
                 {
                     printf("A new client connected from %x:%u.\n",
                                 event.peer->address.host,
                                 event.peer->address.port);
+
+                    // broadcast data packet to all clients
+                    broadcast_server_packet(server,"hi client\0");
+
                     clientCount++;
                     clientConnected=true;
                     std::cout<<"Client connect: "<<std::boolalpha<<clientConnected<<"\n";
                     std::cout<<"Client count: "<<clientCount<<"\n";
                     break;
                 }
-                // recieve packet from client
+
+                // 02. recieve packet from client
                 case ENET_EVENT_TYPE_RECEIVE:
                 {
                     printf("Recieved data packet from %x:%u containing: %s.",
@@ -67,12 +72,14 @@ int main(void)
                     enet_packet_destroy(event.packet);
                     break;
                 }
-                // diconnection
+
+                // 03. client disconnects from server
                 case ENET_EVENT_TYPE_DISCONNECT:
                 {
                     printf("%x:%u disconnected.\n",
                                 event.peer->address.host,
                                 event.peer->address.port);
+
                     clientCount--;
                     clientConnected=false;
                     std::cout<<"Client connect: "<<clientConnected<<"\n";
